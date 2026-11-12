@@ -1,0 +1,6 @@
+{
+  "name": "KANTRO AI - College Canteen Pre-Ordering & Break Scheduling",
+  "description": "Your Break, Your Food, Your Time. Smart college canteen pre-ordering web application with intelligent slot scheduling, kitchen preparation coordination, and AI food assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

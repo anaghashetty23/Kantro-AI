@@ -1,0 +1,1221 @@
+BUILD A COMPLETE AI-POWERED COLLEGE CANTEEN PRE-ORDERING WEB APPLICATION — KANTRO AI
+
+Build a complete, functional, responsive, full-stack web application named KANTRO AI.
+
+This must be a working application with frontend, backend, database, authentication, order management, scheduling, and AI-assisted ordering. Do not create only a static UI or a landing-page prototype.
+
+The application should be designed for a college canteen where students can check the menu, plan their food orders according to their class breaks, pre-order food, and collect it from the canteen at the scheduled time.
+
+The kitchen employees should receive and prepare orders efficiently, while the kitchen administrator should be able to monitor and manage the entire canteen operation.
+
+The main purpose is to reduce waiting time, prevent crowding during college breaks, improve kitchen coordination, and make food pre-ordering convenient.
+
+---
+
+1. APPLICATION BRANDING
+
+Application name: KANTRO AI
+
+Tagline: Your Break, Your Food, Your Time.
+
+Use the exact name KANTRO AI everywhere in the application.
+
+Branding should appear on:
+
+- Landing page
+- Login and registration pages
+- Student dashboard
+- Kitchen employee dashboard
+- Kitchen administrator dashboard
+- Navigation bars
+- Order confirmation pages
+- Browser tab title
+
+Create a simple, professional logo treatment using the KANTRO AI name. A small food-related or time-related symbol can accompany the name, but avoid complicated illustrations.
+
+---
+
+2. DESIGN AND VISUAL APPEARANCE
+
+The application must look modern, attractive, professional, and easy to use.
+
+Use a yellow and white visual theme throughout the application.
+
+Suggested colour palette:
+
+- Main background: Warm off-white (#FAFAF5)
+- Primary yellow: Soft golden yellow (#F4C542)
+- Secondary yellow: Light cream yellow (#FFF5CC)
+- Cards and content surfaces: White (#FFFFFF)
+- Main text: Dark charcoal (#292929)
+- Secondary text: Muted grey (#777777)
+- Success: Muted green
+- Warning: Soft orange
+- Error: Muted red
+
+Design requirements:
+
+1. Use yellow mainly for primary buttons, selected navigation items, highlights, and important indicators.
+2. Do not make the entire screen bright yellow.
+3. Use white backgrounds for cards and content sections.
+4. Use subtle borders, soft shadows, rounded corners, and comfortable spacing.
+5. Use clean, modern typography.
+6. Maintain consistent button sizes, spacing, and alignment.
+7. Use simple food images or attractive food thumbnails in the menu.
+8. Use Lucide icons where useful.
+9. Avoid excessive animations, gradients, charts, colours, and unnecessary decorative elements.
+10. Do not overcrowd the dashboard with too many cards.
+11. Keep all sections organised and easy to navigate.
+
+The student portal must be mobile-friendly.
+
+Kitchen employee and administrator dashboards should be comfortable to use on laptops and tablets.
+
+The application should feel like a real product that could be used in a college canteen.
+
+---
+
+3. TECHNOLOGY AND APPLICATION ARCHITECTURE
+
+Build the application using:
+
+- Frontend: React + TypeScript
+- Styling: Tailwind CSS or clean CSS
+- Icons: Lucide React
+- Backend: Node.js + Express
+- Database: SQLite with persistent storage
+- AI integration: Gemini API through the backend
+- API communication: REST APIs
+- Live order updates: Server-Sent Events, WebSockets, or reliable polling
+
+Important technical requirements:
+
+1. Build a proper frontend and backend.
+2. Store users, menu items, orders, payments, break schedules, kitchen capacity, and order updates in the database.
+3. Do not use hardcoded arrays or browser LocalStorage as the primary database.
+4. Use database seed data for initial menu items and demo records.
+5. Ensure that data remains available after page refresh and application restart when persistent storage is configured.
+6. Keep Gemini API keys on the server. Never expose API keys in frontend code.
+7. If the Gemini API is unavailable, provide a deterministic fallback for basic AI-assisted ordering and scheduling.
+8. Use Indian Rupees (₹) throughout the application.
+9. Use Indian Standard Time (Asia/Kolkata) for all order and pickup times.
+10. Keep the implementation organised into reusable components, backend routes, database models, and services.
+
+Do not use Firebase. Use SQLite and the backend described above.
+
+---
+
+4. FIRST LANDING PAGE — ROLE SELECTION
+
+When a user opens the application, the first screen must be a clean landing page.
+
+Display:
+
+KANTRO AI
+
+Your Break, Your Food, Your Time.
+
+Add a short description:
+
+"Your college canteen, made smarter. Plan your break, pre-order your food, and skip the queue."
+
+Below this, display three equally sized login options:
+
+1. Student Login
+2. Kitchen Employee Login
+3. Kitchen Administrator Login
+
+Each option should have:
+
+- A suitable icon
+- A short description
+- A clearly visible Login button
+
+The three options should be arranged neatly and consistently.
+
+Do not display all three dashboards together.
+
+When the user selects a role, navigate to the respective login page.
+
+Include a Back to Home option on every login page.
+
+---
+
+5. STUDENT AUTHENTICATION AND REGISTRATION
+
+Student authentication must be based on the student's College ID and password.
+
+Do not use email as the primary student login identifier.
+
+Student Login
+
+The login page should contain:
+
+- College ID
+- Password
+- Login button
+- Forgot Password option
+- First-time student? Register here option
+
+Students must log in using their registered College ID and password.
+
+First-Time Student Registration
+
+Create a separate registration page.
+
+Required fields:
+
+- Full Name
+- College ID / USN
+- Department
+- Year of Study
+- Password
+- Confirm Password
+
+Registration requirements:
+
+1. Every student must register using a unique College ID.
+2. Do not allow duplicate College IDs.
+3. Validate all required fields.
+4. Password and confirm password must match.
+5. Store passwords securely using bcrypt or an equivalent password-hashing method.
+6. Do not store plain-text passwords.
+7. After successful registration, create the student account in the database.
+8. Allow the student to log in using the newly registered College ID and password.
+
+For the hackathon demo, allow registration with a demo College ID without requiring an actual college authentication service. Clearly distinguish this from official institutional verification.
+
+The administrator should be able to view registered student accounts.
+
+Kitchen Employee Login
+
+Use a separate employee login page with:
+
+- Employee ID
+- Password
+- Login button
+
+Only administrator-created employee accounts should be able to access this portal.
+
+Kitchen Administrator Login
+
+Use a separate administrator login page with:
+
+- Administrator ID
+- Password
+- Login button
+
+Do not provide public administrator registration.
+
+Authentication and access control
+
+Implement basic but proper security:
+
+- Secure password hashing.
+- Server-side session authentication.
+- HTTP-only session cookies.
+- Role-based access control.
+- Validate user permissions on the backend.
+- Prevent students from accessing kitchen or administrator APIs.
+- Prevent employees from accessing administrator-only controls.
+- Provide logout functionality.
+
+---
+
+6. STUDENT DASHBOARD
+
+After successful student login, open the Student Dashboard.
+
+The dashboard should have a simple sidebar or top navigation with these options:
+
+1. Dashboard
+2. Full Menu
+3. AI Food Assistant
+4. My Cart
+5. My Orders
+6. Profile
+7. Logout
+
+Use a clean layout. Avoid displaying too many cards at once.
+
+Student Dashboard Home
+
+Display a personalised greeting:
+
+"Hello, [Student Name]!"
+
+Below it, display:
+
+"Plan your break. Order ahead. Enjoy your food."
+
+Include these sections:
+
+A. Your Break Schedule
+
+Allow students to manually enter their break details.
+
+Fields:
+
+- Break Start Time
+- Break End Time
+- Preferred Pickup Time
+
+Add a button:
+
+Check Available Pickup Slots
+
+The student must be able to enter their break time manually. This is an essential feature and must not be hidden behind AI.
+
+When the student submits the break details:
+
+- Send the details to the backend.
+- Check kitchen workload and available preparation capacity.
+- Check menu item preparation times.
+- Check whether the requested pickup time is feasible.
+- Display available pickup slots.
+- Display unavailable slots clearly.
+- Give a short reason when a slot is unavailable.
+
+The student should be able to select one of the available pickup slots.
+
+Do not automatically choose an unexplained pickup time.
+
+B. Quick Actions
+
+Show simple shortcuts:
+
+- View Full Menu
+- Ask AI Assistant
+- View My Orders
+
+C. Popular Food Items
+
+Show a small selection of popular menu items with:
+
+- Food image
+- Item name
+- Price
+- Preparation time
+- Add to Cart button
+
+D. Active Order
+
+If the student has an active order, display:
+
+- Order ID
+- Items
+- Pickup time
+- Current order status
+
+If the student has no active order, show a simple message encouraging them to explore the menu.
+
+---
+
+7. FULL MENU — COMPLETE FOOD CATALOGUE
+
+Create a separate Full Menu page.
+
+The student must be able to access the complete menu by clicking View Full Menu.
+
+Organise the menu into categories.
+
+Use attractive food thumbnails and clean product cards.
+
+Each menu item must display:
+
+- Food image
+- Food name
+- Short description
+- Price
+- Preparation time
+- Availability status
+- Add to Cart button
+
+The preparation time is very important. Display it clearly for every item.
+
+Use the following initial demo menu:
+
+South Indian
+
+Food Item| Price| Preparation Time
+Masala Dosa| ₹50| 10 min
+Plain Dosa| ₹40| 8 min
+Set Dosa| ₹45| 9 min
+Idli (2 pieces)| ₹30| 5 min
+Vada| ₹20| 6 min
+Idli Vada Combo| ₹40| 7 min
+Poori Bhaji| ₹45| 10 min
+Upma| ₹30| 5 min
+
+Meals and Rice
+
+Food Item| Price| Preparation Time
+South Indian Meals| ₹80| 12 min
+Veg Fried Rice| ₹70| 12 min
+Veg Pulao| ₹65| 10 min
+Curd Rice| ₹40| 5 min
+Lemon Rice| ₹45| 5 min
+Paneer Rice| ₹80| 13 min
+
+Snacks
+
+Food Item| Price| Preparation Time
+Veg Sandwich| ₹45| 7 min
+Cheese Sandwich| ₹60| 8 min
+Samosa| ₹20| 4 min
+Veg Puff| ₹25| 4 min
+French Fries| ₹50| 10 min
+Maggi| ₹40| 8 min
+
+Beverages
+
+Food Item| Price| Preparation Time
+Tea| ₹12| 3 min
+Coffee| ₹15| 4 min
+Cold Coffee| ₹40| 5 min
+Fresh Lime Juice| ₹30| 4 min
+Fresh Fruit Juice| ₹40| 5 min
+Buttermilk| ₹20| 2 min
+
+All the items and prices must be stored in the database.
+
+The administrator must be able to add, edit, remove, and mark items as unavailable.
+
+Include:
+
+- Search by food name.
+- Category filters.
+- Availability indicators.
+- Quantity selection.
+- Add to Cart.
+
+Do not allow students to order unavailable items.
+
+---
+
+8. AI FOOD ASSISTANT — IMPORTANT FEATURE
+
+Create an AI-powered chat assistant called:
+
+KANTRO AI Assistant
+
+It should help students decide what to order according to their class timetable, break time, available kitchen slots, food preferences, and preparation time.
+
+Give the assistant a simple chat interface.
+
+The student should be able to type natural-language questions such as:
+
+- "I have a class at 1 PM. When can I order?"
+- "My break is only 15 minutes. What can I eat?"
+- "What can I order if I have only 10 minutes?"
+- "Suggest something under ₹50."
+- "Which food items can be prepared before my break ends?"
+- "Show me the complete menu."
+- "I have a class immediately after lunch. Suggest a quick meal."
+- "Can I order a dosa and coffee together?"
+- "What is available right now?"
+
+The assistant should:
+
+1. Understand the student's question.
+2. Ask for missing break details when necessary.
+3. Refer to actual menu items stored in the database.
+4. Use the actual preparation time of each item.
+5. Check current item availability.
+6. Check real kitchen capacity and available pickup slots.
+7. Recommend suitable items based on the student's available time and budget.
+8. Suggest combinations of food items when appropriate.
+9. Display prices and preparation times in its recommendations.
+10. Allow the student to add a suggested item to the cart.
+11. Allow the student to proceed to checkout.
+
+Example:
+
+Student: "I have only 10 minutes before my next class. What can I order?"
+
+Assistant:
+
+"You have a short break! Based on the current menu, you could consider:
+
+- Idli — ₹30 — 5 minutes
+- Tea — ₹12 — 3 minutes
+- Curd Rice — ₹40 — 5 minutes
+
+You can also check available pickup slots before confirming your order."
+
+The assistant must not invent menu items, prices, availability, or pickup times.
+
+AI recommendations are suggestions only. Actual order feasibility must always be checked by the backend.
+
+If Gemini is unavailable, show useful fallback suggestions based on menu data and preparation times.
+
+---
+
+9. CART AND ORDER CHECKOUT
+
+This is one of the most important parts of KANTRO AI.
+
+Students must be able to add multiple food items to the cart.
+
+My Cart
+
+Display:
+
+- Selected food items
+- Food images
+- Item prices
+- Quantity
+- Increase quantity button
+- Decrease quantity button
+- Remove item button
+- Total price
+
+Allow students to continue browsing the menu and return to their cart.
+
+Preserve the student's cart during navigation and refresh for the logged-in session, using the database or an appropriate persistent backend mechanism.
+
+Checkout
+
+Display a clean checkout page containing:
+
+- Student name
+- College ID
+- Selected food items
+- Quantity of each item
+- Total amount
+- Break start time
+- Break end time
+- Selected pickup time
+- Payment method
+
+Before confirming the order, validate:
+
+- Menu item availability.
+- Current prices.
+- Quantity limits.
+- Inventory availability where applicable.
+- Kitchen preparation capacity.
+- Selected pickup slot.
+- Student authentication.
+
+If the requested slot is no longer available, explain this and ask the student to select another available slot.
+
+Payment Methods
+
+Provide exactly two primary payment options:
+
+Option 1: Pay at Counter
+
+When the student selects Pay at Counter:
+
+- Show the final order summary.
+- Display a Confirm Order button.
+- When clicked, create the order in the database.
+- Set payment status to Pending / Pay at Counter.
+- Display a successful order confirmation.
+
+Option 2: Pay Online
+
+For the hackathon demonstration, implement a simulated online payment flow.
+
+When the student selects Pay Online:
+
+- Show the amount payable.
+- Display a clearly labelled DEMO PAYMENT screen.
+- Provide a simulated Pay Now button.
+- When clicked, simulate successful payment.
+- Update payment status to Paid (Demo).
+- Create and confirm the order.
+- Display the successful order confirmation.
+
+IMPORTANT:
+
+- Do not collect actual card details, UPI PINs, bank passwords, or sensitive banking information.
+- Do not claim that real money has been transferred.
+- Clearly label the online payment as a demonstration.
+
+Successful Order Confirmation
+
+After a successful order submission, show an attractive confirmation page.
+
+Display:
+
+- "Your Order is Confirmed!"
+- Unique Order ID
+- Pickup Code
+- Food items
+- Total amount
+- Payment method
+- Payment status
+- Scheduled pickup time
+- Current order status
+
+Also display:
+
+"Your food is being prepared. Please collect it at your scheduled pickup time."
+
+The order must immediately appear in the Kitchen Employee dashboard and be stored in the database.
+
+Clear the cart only after the order has been successfully created.
+
+Do not display order confirmation if the backend fails to create the order.
+
+---
+
+10. MY ORDERS — STUDENT PORTAL
+
+Create a separate My Orders page.
+
+Show the logged-in student's own orders only.
+
+Organise orders into:
+
+- Active Orders
+- Completed Orders
+- Cancelled Orders
+
+Each order should display:
+
+- Order ID
+- Ordered food items
+- Total amount
+- Order time
+- Pickup time
+- Payment method
+- Payment status
+- Current order status
+
+Use clear status labels:
+
+- Confirmed
+- Accepted
+- Preparing
+- Ready for Pickup
+- Completed
+- Cancelled
+- Delayed
+
+When the kitchen employee or administrator updates an order, the student must see the updated status.
+
+If the student has never placed an order, show:
+
+"You haven't placed any orders yet."
+
+Add an Explore Menu button.
+
+IMPORTANT:
+A student's My Orders page must not display sample orders belonging to other demo students.
+
+---
+
+11. STUDENT PROFILE
+
+Create a simple profile page.
+
+Display:
+
+- Student Name
+- College ID
+- Department
+- Year of Study
+
+Add a section called:
+
+Default Payment Preference
+
+Allow the student to select:
+
+1. Pay at Counter
+2. Pay Online
+
+Save the selected preference in the database.
+
+At checkout, automatically select the student's saved default preference.
+
+The student must still be able to change the payment method for an individual order without changing their saved default preference.
+
+Also include a basic change password option and logout.
+
+---
+
+12. KITCHEN EMPLOYEE DASHBOARD
+
+After Kitchen Employee Login, open a dedicated Kitchen Employee Dashboard.
+
+This dashboard should focus on receiving, preparing, and completing food orders.
+
+Use a laptop-friendly layout with simple navigation.
+
+Navigation options:
+
+1. Dashboard
+2. Incoming Orders
+3. Preparing Orders
+4. Ready for Pickup
+5. Kitchen Slots
+6. Logout
+
+A. Dashboard Overview
+
+Display a small number of useful statistics:
+
+- Total Active Orders
+- New Orders
+- Orders Being Prepared
+- Ready for Pickup
+
+Do not overcrowd the screen.
+
+B. Incoming Orders
+
+Display orders in a clear table or organised list.
+
+Each order must display:
+
+- Order ID
+- Student Name
+- Student College ID
+- Food items
+- Quantity
+- Order received time
+- Scheduled preparation time
+- Expected pickup / delivery-to-counter time
+- Payment method
+- Payment status
+- Current order status
+
+The employee must clearly see:
+
+1. When the order was placed.
+2. When it should be prepared.
+3. When it must be ready for pickup.
+
+Sort orders by scheduled pickup time and preparation priority.
+
+C. Order Management
+
+Provide functional controls for each order:
+
+- Accept Order
+- Start Preparing
+- Mark as Ready
+- Mark as Completed
+
+Allow cancellation or escalation only according to the permissions defined by the administrator.
+
+Whenever an employee changes an order status, update the database and reflect the change in the student's My Orders page.
+
+D. Kitchen Slots and Remaining Capacity
+
+Create a section displaying available kitchen slots.
+
+Show:
+
+- Time interval
+- Total preparation capacity
+- Currently booked workload
+- Remaining capacity
+- Number of orders scheduled
+- Available / Full status
+
+Use clear progress indicators.
+
+The employee should be able to understand how many orders can still be accepted for each time slot.
+
+Capacity must be calculated from actual active orders and station limits, not from fixed decorative numbers.
+
+E. Kitchen Preparation Priority
+
+Prioritise orders based on:
+
+- Scheduled pickup time
+- Preparation duration
+- Current order status
+- Kitchen station workload
+
+Clearly highlight orders that are approaching their pickup deadline.
+
+Do not use excessive alerts or unnecessary animations.
+
+---
+
+13. KITCHEN ADMINISTRATOR DASHBOARD
+
+After Kitchen Administrator Login, open a dedicated administrator dashboard.
+
+The administrator should have control over the overall canteen operation.
+
+Navigation:
+
+1. Dashboard Overview
+2. All Orders
+3. Menu Management
+4. Kitchen Capacity
+5. Inventory
+6. Student and Employee Accounts
+7. Reports
+8. Logout
+
+A. Dashboard Overview
+
+Display useful operational statistics:
+
+- Total Orders
+- Completed Orders
+- Pending Orders
+- Preparing Orders
+- Delayed Orders
+- Total Sales
+
+Use simple summary cards.
+
+Add a small order-status overview if useful.
+
+All statistics must be calculated from database records.
+
+B. All Orders
+
+The administrator must be able to view all orders placed by students.
+
+Display:
+
+- Order ID
+- Student name
+- College ID
+- Items
+- Order time
+- Pickup time
+- Payment method
+- Payment status
+- Current order status
+
+Allow filtering by:
+
+- Order status
+- Date
+- Student College ID
+
+The administrator must be able to open an order and view its full details.
+
+C. Managing Incorrect or Problematic Orders
+
+This is an important feature.
+
+If an order is incorrect, unavailable, incomplete, or cannot be prepared as requested, the administrator must be able to notify the student.
+
+For each order, provide:
+
+- View Order Details
+- Flag Order
+- Send Message to Student
+- Mark as Delayed
+- Suggest an Alternative
+- Cancel Order
+
+When an administrator flags an order, allow them to select or enter a reason.
+
+Examples:
+
+- Selected item is unavailable.
+- Ingredient is out of stock.
+- Requested pickup time cannot be met.
+- Order details require clarification.
+
+Allow the administrator to write a short message to the student.
+
+The student must receive the message inside their application through an order notification section.
+
+Display the notification under the affected order.
+
+For example:
+
+"Your selected item is currently unavailable. Please choose an alternative."
+
+If an order is cancelled after payment, update its payment status appropriately. For demo online payments, clearly mark any refund as simulated rather than a real financial transaction.
+
+D. Menu Management
+
+Allow the administrator to:
+
+- Add new food items.
+- Edit existing food items.
+- Change prices.
+- Change preparation times.
+- Upload or update food images.
+- Change categories.
+- Mark items Available / Unavailable.
+- Remove menu items.
+
+Changes must be saved in the database and immediately reflected in the student menu.
+
+E. Kitchen Capacity Management
+
+Allow the administrator to set:
+
+- Opening hours.
+- Available pickup intervals.
+- Maximum kitchen workload per interval.
+- Preparation capacity by station.
+
+Use these initial demo stations:
+
+- Dosa / South Indian Station
+- Snacks Station
+- Meals / Rice Station
+- Beverages Station
+
+Each station should have an editable capacity.
+
+The administrator must be able to increase or decrease the capacity and save the changes.
+
+Capacity changes must affect the actual scheduling engine.
+
+F. Inventory Management
+
+Keep inventory simple and practical.
+
+Display important ingredients and their available quantities.
+
+Allow the administrator to:
+
+- View stock.
+- Update quantities.
+- Mark an ingredient as low stock.
+- Mark an ingredient unavailable.
+
+If an item requires an unavailable ingredient, it must not be offered as available for new orders.
+
+Do not create an unnecessarily complicated inventory system.
+
+G. Accounts
+
+Allow the administrator to view:
+
+- Registered students
+- Kitchen employees
+
+Display their basic details and account status.
+
+The administrator may activate or deactivate accounts.
+
+Do not expose passwords to the administrator.
+
+H. Reports
+
+Show a simple report containing:
+
+- Daily order count
+- Completed orders
+- Cancelled orders
+- Total sales
+- Popular food items
+
+Keep reports simple and readable. Do not add complicated analytics dashboards.
+
+---
+
+14. INTELLIGENT PRE-ORDERING AND KITCHEN SCHEDULING ENGINE
+
+This is the core logic of KANTRO AI.
+
+Do not treat pre-ordering as an ordinary add-to-cart feature. The scheduling engine must be connected to the backend.
+
+When a student places an order:
+
+1. Read the selected menu items and quantities.
+2. Read the preparation duration of each item.
+3. Identify the required kitchen station for each item.
+4. Check ingredient availability.
+5. Read the student's break start and end times.
+6. Read the requested pickup time.
+7. Check the station workload during the required preparation interval.
+8. Calculate whether the order can be completed before the requested pickup time.
+9. If capacity is available, reserve the required capacity.
+10. Confirm the order.
+11. Send the order to the kitchen employee dashboard.
+
+The backend must prevent two students from reserving the same remaining capacity simultaneously.
+
+Use database transactions or equivalent atomic reservation logic.
+
+If a slot becomes full between checking availability and confirming the order, reject that reservation and ask the student to choose another slot.
+
+Preparation time must be calculated based on the selected items and quantities.
+
+When multiple items use the same kitchen station, account for the combined workload rather than simply displaying the preparation time of one item.
+
+The system should support configurable preparation intervals and kitchen station capacities.
+
+Do not allow a student to select an impossible pickup time.
+
+---
+
+15. RESCUE MY BREAK — DELAY MANAGEMENT
+
+Add one simple but useful feature called:
+
+Rescue My Break
+
+If an order is delayed or the original pickup time cannot be met, the system should help recover the student's break.
+
+For example:
+
+- Notify the student that the order is delayed.
+- Display the updated estimated pickup time.
+- If possible, suggest another available pickup slot.
+- Allow the student to accept the suggested alternative or contact the administrator.
+
+The administrator and kitchen employee should be able to update the delay status.
+
+The student should receive the updated information in My Orders.
+
+Do not make this feature complicated. Keep it connected to actual order status and available kitchen capacity.
+
+---
+
+16. DATABASE STRUCTURE
+
+Create a proper SQLite database with tables such as:
+
+- Students
+- Employees
+- Administrators
+- MenuItems
+- Categories
+- Orders
+- OrderItems
+- Payments
+- BreakSchedules
+- PickupSlots
+- KitchenStations
+- KitchenCapacity
+- Inventory
+- Notifications
+- StudentPreferences
+
+Use appropriate relationships and foreign keys.
+
+Each order must belong to a specific student.
+
+Each order item must reference an actual menu item.
+
+Each payment must reference its corresponding order.
+
+Use unique IDs for students and orders.
+
+Store order creation time, scheduled preparation time, pickup time, and order status.
+
+Use transactions for order creation, inventory validation, and capacity reservation.
+
+Do not mix sample demo data with the real student's personal order history.
+
+---
+
+17. DEMO DATA AND HACKATHON DEMONSTRATION
+
+Prepare a working demonstration environment.
+
+Create separate demo accounts for all three roles.
+
+Suggested demo credentials:
+
+Student:
+
+- College ID: DEMO2026
+- Password: Student@123
+
+Kitchen Employee:
+
+- Employee ID: KITCHEN01
+- Password: Kitchen@123
+
+Kitchen Administrator:
+
+- Administrator ID: ADMIN01
+- Password: Admin@123
+
+These credentials are only for the hackathon demonstration.
+
+Create some sample kitchen orders belonging to separate demo students so the Kitchen Employee dashboard does not appear empty.
+
+Example sample orders:
+
+Order ID| Food Items| Pickup Time| Status
+KA101| 2 Masala Dosas + Coffee| 12:40 PM| Confirmed
+KA102| Veg Fried Rice| 12:45 PM| Preparing
+KA103| 2 Idlis + Vada| 12:50 PM| Preparing
+KA104| Sandwich + Cold Coffee| 12:55 PM| Confirmed
+KA105| South Indian Meals| 1:00 PM| Ready for Pickup
+KA106| 2 Teas + 2 Samosas| 1:05 PM| Confirmed
+
+Create realistic sample administrator statistics so the dashboard has meaningful content during the demo.
+
+For example:
+
+- Total Orders: 42
+- Completed Orders: 28
+- Pending Orders: 9
+- Delayed Orders: 2
+- Sample Sales: ₹3,450
+
+Clearly identify seeded demo records as demo data.
+
+IMPORTANT:
+
+The demo student account must initially have an empty My Orders page.
+
+The six sample kitchen orders must belong to other demo students, not the default demo student.
+
+When the demo student places a new order:
+
+- Create a real database record.
+- Show it in that student's My Orders.
+- Show the same order in the Kitchen Employee dashboard.
+- Update the administrator dashboard statistics.
+- Reserve the actual kitchen capacity.
+- Update relevant inventory.
+
+Never create fake confirmation screens that are disconnected from database records.
+
+---
+
+18. APPLICATION NAVIGATION AND USER EXPERIENCE
+
+Maintain a consistent navigation structure for all three roles.
+
+The user should always know which portal they are using.
+
+Use:
+
+- Clear page headings.
+- Simple navigation labels.
+- Consistent back buttons.
+- Helpful empty states.
+- Confirmation messages.
+- Error messages.
+- Loading indicators.
+- Clear order status labels.
+
+Do not place every feature on one page.
+
+Each feature should have its own organised page or section accessible from the dashboard.
+
+Avoid unnecessary buttons and duplicate navigation.
+
+Make sure the back button and logout work correctly.
+
+---
+
+19. END-TO-END FUNCTIONAL REQUIREMENTS
+
+The following complete workflow must work:
+
+Student Workflow
+
+1. Open KANTRO AI.
+2. Select Student Login.
+3. Register with College ID if using the application for the first time.
+4. Log in with College ID and password.
+5. Enter the student dashboard.
+6. Enter break start time, break end time, and preferred pickup time manually.
+7. Check available pickup slots.
+8. Browse the full menu.
+9. View food preparation times.
+10. Ask the AI assistant for recommendations if needed.
+11. Add one or more food items to the cart.
+12. Open the cart.
+13. Proceed to checkout.
+14. Select Pay at Counter or Pay Online.
+15. Confirm the order.
+16. See the successful order confirmation and pickup code.
+17. Open My Orders and track the order.
+
+Kitchen Employee Workflow
+
+1. Log in through Kitchen Employee Login.
+2. Open the employee dashboard.
+3. View incoming student orders.
+4. See when each order was received.
+5. See its scheduled preparation time and pickup deadline.
+6. Accept the order.
+7. Start preparing it.
+8. Mark it Ready for Pickup.
+9. Mark it Completed after collection.
+
+Kitchen Administrator Workflow
+
+1. Log in through Kitchen Administrator Login.
+2. View the overall dashboard.
+3. View all orders.
+4. Manage menu items.
+5. Update kitchen capacity.
+6. Manage inventory.
+7. View students and employees.
+8. Flag an incorrect or problematic order.
+9. Send a message to the student.
+10. Update or cancel the order when necessary.
+11. View operational reports.
+
+All three workflows must be connected to the same backend and database.
+
+---
+
+20. FINAL QUALITY CHECKS
+
+Before considering the application complete, test the following:
+
+- Landing page displays the correct KANTRO AI branding.
+- All three role-selection options work.
+- Student registration works with College ID.
+- Duplicate College IDs are rejected.
+- Student login works.
+- Employee and administrator login work separately.
+- Role-based access is enforced.
+- Student can manually enter break times.
+- Available pickup slots are calculated using actual kitchen capacity.
+- Full menu displays all items, prices, and preparation times.
+- Search and category filters work.
+- Add to Cart and quantity controls work.
+- Checkout calculates the correct total.
+- Pay at Counter works.
+- Simulated Pay Online works.
+- Order confirmation appears only after successful order creation.
+- Every new order is stored in SQLite.
+- Student My Orders displays only that student's orders.
+- New orders appear in the Kitchen Employee dashboard.
+- Kitchen status updates are reflected in the student portal.
+- Administrator can manage orders, menu, capacity, and inventory.
+- Administrator notifications appear for the relevant student.
+- Refreshing the page does not erase persistent data.
+- The layout works on mobile, tablet, and desktop.
+- No buttons should be decorative or non-functional.
+- No broken navigation or dead-end pages should remain.
+
+If any function is not implemented, do not pretend that it works. Complete the backend and frontend integration before marking it as functional.
+
+---
+
+FINAL INSTRUCTION
+
+Build KANTRO AI — Your Break, Your Food, Your Time as a complete, polished, working college canteen pre-ordering platform.
+
+Prioritise these four main features:
+
+1. AI-assisted student ordering and break-time planning.
+2. Manual and intelligent pickup-slot scheduling.
+3. Kitchen order management and preparation coordination.
+4. Rescue My Break delay recovery and student notifications.
+
+Keep the interface attractive, organised, and minimal using the yellow-and-white theme.
+
+Do not add unnecessary features simply to make the application look advanced.
+
+Do not remove any of the required features.
+
+Do not create a static mockup.
+
+Do not replace actual database operations with fake frontend interactions.
+
+Build the complete application with a clear landing page, three separate role-based login flows, three dedicated dashboards, a functional student ordering journey, and a connected kitchen management system.
+
+The final result should be suitable for a college hackathon demonstration and should clearly demonstrate how KANTRO AI makes college canteen pre-ordering faster, smarter, and more organised.
