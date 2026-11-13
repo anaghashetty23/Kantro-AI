@@ -29,16 +29,6 @@ export function getAuthenticatedUser(req: Request) {
   }
 }
 
-function getCookieOptions(req: Request) {
-  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
-  return {
-    httpOnly: true,
-    secure: isHttps,
-    sameSite: (isHttps ? 'none' : 'lax') as 'none' | 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  };
-}
-
 // ======================== AUTHENTICATION ========================
 
 apiRouter.post('/auth/register', (req: Request, res: Response): any => {
@@ -73,7 +63,12 @@ apiRouter.post('/auth/register', (req: Request, res: Response): any => {
     `).run(userId, collegeId.trim().toUpperCase(), passwordHash, fullName.trim(), department.trim(), yearOfStudy.trim());
 
     // Set cookie
-    res.cookie('kantro_session', userId, getCookieOptions(req));
+    res.cookie('kantro_session', userId, {
+      httpOnly: true,
+      secure: false, // development iframe compatibility
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
 
     const user = db.prepare('SELECT id, role, username, full_name, department, year_of_study, payment_preference FROM users WHERE id = ?').get(userId);
     return res.json({ success: true, user, token: userId });
@@ -107,15 +102,19 @@ apiRouter.post('/auth/login', (req: Request, res: Response): any => {
     return res.status(403).json({ error: 'This account has been deactivated by administrator.' });
   }
 
-  res.cookie('kantro_session', user.id, getCookieOptions(req));
+  res.cookie('kantro_session', user.id, {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
 
   const { password_hash, ...safeUser } = user;
   return res.json({ success: true, user: safeUser, token: user.id });
 });
 
-apiRouter.post('/auth/logout', (req: Request, res: Response) => {
-  const opts = getCookieOptions(req);
-  res.clearCookie('kantro_session', { httpOnly: opts.httpOnly, secure: opts.secure, sameSite: opts.sameSite });
+apiRouter.post('/auth/logout', (_req: Request, res: Response) => {
+  res.clearCookie('kantro_session');
   res.json({ success: true, message: 'Logged out successfully.' });
 });
 
