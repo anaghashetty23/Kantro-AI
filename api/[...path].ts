@@ -5,6 +5,18 @@ let appPromise: ReturnType<typeof createApp> | null = null;
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {
+    if (req.url) {
+      const parsed = new URL(req.url, 'http://localhost');
+      const rewrittenPath = parsed.searchParams.get('__path');
+      if (rewrittenPath !== null) {
+        parsed.searchParams.delete('__path');
+        const cleanSubPath = rewrittenPath.replace(/^\/+/, '');
+        const normalizedPathname = cleanSubPath ? `/api/${cleanSubPath}` : '/api';
+        const remainingQuery = parsed.searchParams.toString();
+        req.url = remainingQuery ? `${normalizedPathname}?${remainingQuery}` : normalizedPathname;
+      }
+    }
+
     if (!appPromise) {
       appPromise = createApp({ serverless: true });
     }
