@@ -1,6 +1,6 @@
-import { Router, Request, Response } from 'express';
+import { Router, type Request, type Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { db } from './db';
+import { db } from './db.ts';
 import {
   calculateOrderPrepTime,
   evaluateBreakPickupSlots,
@@ -8,9 +8,9 @@ import {
   timeStringToMinutes,
   minutesToTimeString,
   findAlternativeSlot,
-  CartItem
-} from './scheduling';
-import { askKantroAssistant } from './gemini';
+  type CartItem
+} from './scheduling.ts';
+import { askKantroAssistant } from './gemini.ts';
 
 export const apiRouter = Router();
 
@@ -27,6 +27,16 @@ export function getAuthenticatedUser(req: Request) {
   } catch (err) {
     return null;
   }
+}
+
+function getCookieOptions(req: Request) {
+  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  return {
+    httpOnly: true,
+    secure: isHttps,
+    sameSite: (isHttps ? 'none' : 'lax') as 'none' | 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  };
 }
 
 // ======================== AUTHENTICATION ========================
@@ -63,12 +73,7 @@ apiRouter.post('/auth/register', (req: Request, res: Response): any => {
     `).run(userId, collegeId.trim().toUpperCase(), passwordHash, fullName.trim(), department.trim(), yearOfStudy.trim());
 
     // Set cookie
-    res.cookie('kantro_session', userId, {
-      httpOnly: true,
-      secure: false, // development iframe compatibility
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    res.cookie('kantro_session', userId, getCookieOptions(req));
 
     const user = db.prepare('SELECT id, role, username, full_name, department, year_of_study, payment_preference FROM users WHERE id = ?').get(userId);
     return res.json({ success: true, user, token: userId });
@@ -102,19 +107,15 @@ apiRouter.post('/auth/login', (req: Request, res: Response): any => {
     return res.status(403).json({ error: 'This account has been deactivated by administrator.' });
   }
 
-  res.cookie('kantro_session', user.id, {
-    httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  });
+  res.cookie('kantro_session', user.id, getCookieOptions(req));
 
   const { password_hash, ...safeUser } = user;
   return res.json({ success: true, user: safeUser, token: user.id });
 });
 
-apiRouter.post('/auth/logout', (_req: Request, res: Response) => {
-  res.clearCookie('kantro_session');
+apiRouter.post('/auth/logout', (req: Request, res: Response) => {
+  const opts = getCookieOptions(req);
+  res.clearCookie('kantro_session', { httpOnly: opts.httpOnly, secure: opts.secure, sameSite: opts.sameSite });
   res.json({ success: true, message: 'Logged out successfully.' });
 });
 

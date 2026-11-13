@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { MenuItem, SlotAnalysis, Order } from '../types';
+import { apiFetch } from '../utils/csrf';
 import {
   Clock,
   Sparkles,
@@ -44,7 +45,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigateTa
 
   // Fetch initial popular menu items & active order
   useEffect(() => {
-    fetch('/api/menu')
+    apiFetch('/api/menu')
       .then(res => res.json())
       .then(data => {
         if (data.items) {
@@ -62,7 +63,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigateTa
 
   const fetchActiveOrder = () => {
     setLoadingOrders(true);
-    fetch('/api/orders/my')
+    apiFetch('/api/orders/my')
       .then(res => res.json())
       .then(data => {
         if (data.orders) {
@@ -82,7 +83,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigateTa
     setSlotsError('');
 
     try {
-      const res = await fetch('/api/schedule/slots', {
+      const res = await apiFetch('/api/schedule/slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

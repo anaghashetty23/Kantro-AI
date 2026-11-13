@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MenuItem, Category } from '../types';
 import { useCart } from '../context/CartContext';
+import { apiFetch } from '../utils/csrf';
 import {
   Search,
   Clock,
@@ -28,7 +29,7 @@ export const FullMenuPage: React.FC<FullMenuPageProps> = ({ onGoToCart }) => {
   const [quantities, setQuantities] = useState<{ [id: string]: number }>({});
 
   useEffect(() => {
-    fetch('/api/menu')
+    apiFetch('/api/menu')
       .then(res => res.json())
       .then(data => {
         if (data.categories) setCategories(data.categories);

@@ -2,8 +2,27 @@ import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
-const DB_PATH = path.resolve(process.cwd(), 'kantro.sqlite');
+function resolveDbPath(): string {
+  const localPath = path.resolve(process.cwd(), 'kantro.sqlite');
+  try {
+    fs.accessSync(process.cwd(), fs.constants.W_OK);
+    return localPath;
+  } catch {
+    const tmpPath = path.join(os.tmpdir(), 'kantro.sqlite');
+    if (!fs.existsSync(tmpPath) && fs.existsSync(localPath)) {
+      try {
+        fs.copyFileSync(localPath, tmpPath);
+      } catch (copyErr) {
+        console.warn('Could not copy bundled kantro.sqlite to tmpdir:', copyErr);
+      }
+    }
+    return tmpPath;
+  }
+}
+
+const DB_PATH = resolveDbPath();
 export const db = new Database(DB_PATH);
 
 // Enable WAL mode and foreign keys for reliable concurrent access

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
+import { apiFetch, safeReadJson } from '../utils/csrf';
 
 interface AuthContextType {
   user: User | null;
@@ -28,14 +29,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchCurrentUser = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await apiFetch('/api/auth/me');
       if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
+        const { data } = await safeReadJson(res);
+        setUser(data?.user ?? null);
       } else {
         setUser(null);
       }
-    } catch (err) {
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -48,12 +49,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password: string, expectedRole?: UserRole) => {
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, expectedRole })
       });
-      const data = await res.json();
+      const { data } = await safeReadJson(res);
+      if (!data) {
+        return {
+          success: false,
+          error: `Unexpected server response (HTTP ${res.status}). Ensure backend API routes are running.`
+        };
+      }
       if (!res.ok) {
         return { success: false, error: data.error || 'Failed to login' };
       }
@@ -73,12 +80,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     confirmPassword: string;
   }) => {
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      const data = await res.json();
+      const { data } = await safeReadJson(res);
+      if (!data) {
+        return {
+          success: false,
+          error: `Unexpected server response (HTTP ${res.status}). Ensure backend API routes are running.`
+        };
+      }
       if (!res.ok) {
         return { success: false, error: data.error || 'Registration failed' };
       }
@@ -91,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await apiFetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {
       // ignore
     } finally {
@@ -101,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updatePreference = async (pref: 'counter' | 'online') => {
     try {
-      const res = await fetch('/api/auth/preferences', {
+      const res = await apiFetch('/api/auth/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentPreference: pref })

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { Order, SlotAnalysis } from '../types';
+import { apiFetch } from '../utils/csrf';
 import {
   CreditCard,
   Banknote,
@@ -39,7 +40,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBackToCart, onOrde
   const fetchSlots = async () => {
     setLoadingSlots(true);
     try {
-      const res = await fetch('/api/schedule/slots', {
+      const res = await apiFetch('/api/schedule/slots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -70,7 +71,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBackToCart, onOrde
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/orders', {
+      const res = await apiFetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

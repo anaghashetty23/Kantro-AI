@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Order, MenuItem, Category, KitchenStation, InventoryItem, User } from '../types';
+import { apiFetch } from '../utils/csrf';
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -20,7 +21,8 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  X
+  X,
+  Bell
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -28,15 +30,28 @@ interface AdminDashboardProps {
   onSelectTab: (tab: string) => void;
 }
 
+function formatOrderTime12h(ts?: string): string {
+  if (!ts) return '-';
+  const hhmm = ts.slice(11, 16);
+  const [hStr, mStr] = hhmm.split(':');
+  const h = parseInt(hStr, 10);
+  if (Number.isNaN(h)) return ts;
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${mStr || '00'} ${suffix}`;
+}
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSelectTab }) => {
   // Stats
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<any>({
     totalOrders: 42,
     completedOrders: 28,
-    pendingOrders: 9,
-    preparingOrders: 2,
+    pendingOrders: 6,
+    preparingOrders: 5,
+    readyOrders: 1,
     delayedOrders: 2,
-    totalSales: 3450
+    totalSales: 3450,
+    isDemoStats: true
   });
 
   // Orders
@@ -72,6 +87,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
 
   // Capacity & Stations
   const [stations, setStations] = useState<KitchenStation[]>([]);
+  const [demoWorkloads, setDemoWorkloads] = useState<any[]>([]);
   const [editingCapacity, setEditingCapacity] = useState<{ [id: string]: number }>({});
   const [stationSaving, setStationSaving] = useState(false);
 
@@ -80,13 +96,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
 
   // Accounts
   const [accounts, setAccounts] = useState<User[]>([]);
+  const [demoAccounts, setDemoAccounts] = useState<any[]>([]);
+
+  // Notifications
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   // Reports
   const [reports, setReports] = useState<any>({
     totalOrders: 42,
     completedOrders: 28,
-    cancelledOrders: 5,
+    cancelledOrders: 1,
+    delayedOrders: 2,
     totalSales: 3450,
+    isDemoReport: true,
     popularItems: []
   });
 
@@ -95,15 +117,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
   // Fetch all admin data
   const fetchAllData = async () => {
     try {
-      const [statsRes, ordersRes, menuRes, stationsRes, invRes, accRes, repRes] =
+      const [statsRes, ordersRes, menuRes, stationsRes, invRes, accRes, repRes, notifRes] =
         await Promise.all([
-          fetch('/api/admin/stats'),
-          fetch(`/api/admin/orders?status=${orderFilterStatus}&collegeId=${orderSearchId}`),
-          fetch('/api/menu'),
-          fetch('/api/admin/stations'),
-          fetch('/api/admin/inventory'),
-          fetch('/api/admin/accounts'),
-          fetch('/api/admin/reports')
+          apiFetch('/api/admin/stats'),
+          apiFetch(`/api/admin/orders?status=${orderFilterStatus}&collegeId=${orderSearchId}`),
+          apiFetch('/api/menu'),
+          apiFetch('/api/admin/stations'),
+          apiFetch('/api/admin/inventory'),
+          apiFetch('/api/admin/accounts'),
+          apiFetch('/api/admin/reports'),
+          apiFetch('/api/notifications')
         ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
@@ -119,6 +142,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
       if (stationsRes.ok) {
         const sData = await stationsRes.json();
         setStations(sData.stations || []);
+        setDemoWorkloads(sData.demoWorkloads || []);
         const capMap: { [id: string]: number } = {};
         sData.stations.forEach((s: KitchenStation) => {
           capMap[s.id] = s.max_capacity_per_slot;
@@ -132,9 +156,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
       if (accRes.ok) {
         const aData = await accRes.json();
         setAccounts(aData.accounts || []);
+        setDemoAccounts(aData.demoAccounts || []);
       }
       if (repRes.ok) {
         setReports(await repRes.json());
+      }
+      if (notifRes.ok) {
+        const nData = await notifRes.json();
+        setNotifications(nData.notifications || []);
       }
     } catch (err) {
       console.error('Failed to load admin data:', err);
@@ -154,7 +183,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
 
     setIsSubmittingAction(true);
     try {
-      const res = await fetch(`/api/admin/orders/${flagModalOrder.id}/action`, {
+      const res = await apiFetch(`/api/admin/orders/${flagModalOrder.id}/action`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -183,7 +212,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
     const method = editingMenuItem ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(menuForm)
@@ -200,7 +229,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
 
   const handleToggleItemAvailability = async (item: MenuItem) => {
     try {
-      const res = await fetch(`/api/menu/${item.id}`, {
+      const res = await apiFetch(`/api/menu/${item.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isAvailable: item.is_available === 1 ? 0 : 1 })
@@ -214,7 +243,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
   const handleDeleteMenuItem = async (id: string) => {
     if (!confirm('Are you sure you want to remove this menu item?')) return;
     try {
-      const res = await fetch(`/api/menu/${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/menu/${id}`, { method: 'DELETE' });
       if (res.ok) fetchAllData();
     } catch {
       // ignore
@@ -225,7 +254,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
   const handleSaveStationCapacity = async (stationId: string) => {
     setStationSaving(true);
     try {
-      const res = await fetch(`/api/admin/stations/${stationId}`, {
+      const res = await apiFetch(`/api/admin/stations/${stationId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ maxCapacityPerSlot: editingCapacity[stationId] })
@@ -244,7 +273,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
   // Inventory toggle
   const handleToggleInventory = async (item: InventoryItem) => {
     try {
-      await fetch(`/api/admin/inventory/${item.id}`, {
+      await apiFetch(`/api/admin/inventory/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isAvailable: item.is_available === 1 ? 0 : 1 })
@@ -258,7 +287,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
   // Account status toggle
   const handleToggleAccountStatus = async (userAcc: User) => {
     try {
-      await fetch(`/api/admin/accounts/${userAcc.id}/status`, {
+      await apiFetch(`/api/admin/accounts/${userAcc.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: userAcc.status === 'active' ? 'inactive' : 'active' })
@@ -331,43 +360,104 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
       {/* ===================== VIEW 1: OVERVIEW ===================== */}
       {currentTab === 'overview' && (
         <div className="space-y-6">
-          {/* Real Operational Stats Calculated from SQLite */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
-              <div className="text-[11px] font-bold text-[#777777] uppercase">Total Orders</div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-black text-[#292929] uppercase tracking-wider">
+                Demo Canteen Statistics
+              </h2>
+              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#FFF5CC] text-amber-900 border border-amber-300">
+                DEMO DATA
+              </span>
+            </div>
+            {stats.liveStats && stats.liveStats.totalOrders > 0 && (
+              <div className="text-xs text-[#777777]">
+                Live Student Orders (Separate): <strong>{stats.liveStats.totalOrders}</strong> (₹{stats.liveStats.totalSales})
+              </div>
+            )}
+          </div>
+
+          {/* Demo Operational Statistics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+              <div className="text-[10px] font-bold text-[#777777] uppercase">Total Orders</div>
               <div className="text-2xl font-black text-[#292929] mt-1">{stats.totalOrders}</div>
-              <div className="text-[10px] text-stone-400 mt-1">All canteen orders</div>
+              <div className="text-[10px] text-amber-700 font-semibold mt-1">Demo Statistics</div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
-              <div className="text-[11px] font-bold text-emerald-700 uppercase">Completed</div>
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+              <div className="text-[10px] font-bold text-emerald-700 uppercase">Completed</div>
               <div className="text-2xl font-black text-emerald-700 mt-1">{stats.completedOrders}</div>
-              <div className="text-[10px] text-stone-400 mt-1">Successfully collected</div>
+              <div className="text-[10px] text-stone-400 mt-1">Collected (Demo)</div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
-              <div className="text-[11px] font-bold text-amber-700 uppercase">Pending / New</div>
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+              <div className="text-[10px] font-bold text-amber-700 uppercase">Pending Orders</div>
               <div className="text-2xl font-black text-amber-700 mt-1">{stats.pendingOrders}</div>
-              <div className="text-[10px] text-stone-400 mt-1">Awaiting completion</div>
+              <div className="text-[10px] text-stone-400 mt-1">Awaiting prep (Demo)</div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
-              <div className="text-[11px] font-bold text-orange-700 uppercase">Cooking Now</div>
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+              <div className="text-[10px] font-bold text-orange-700 uppercase">Preparing</div>
               <div className="text-2xl font-black text-orange-700 mt-1">{stats.preparingOrders}</div>
-              <div className="text-[10px] text-stone-400 mt-1">Active on stations</div>
+              <div className="text-[10px] text-stone-400 mt-1">Cooking now (Demo)</div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
-              <div className="text-[11px] font-bold text-red-700 uppercase">Delayed / Flagged</div>
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+              <div className="text-[10px] font-bold text-emerald-800 uppercase">Ready for Pickup</div>
+              <div className="text-2xl font-black text-emerald-800 mt-1">{stats.readyOrders ?? 1}</div>
+              <div className="text-[10px] text-stone-400 mt-1">At counter (Demo)</div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+              <div className="text-[10px] font-bold text-red-700 uppercase">Delayed Orders</div>
               <div className="text-2xl font-black text-red-700 mt-1">{stats.delayedOrders}</div>
-              <div className="text-[10px] text-stone-400 mt-1">Rescue My Break active</div>
+              <div className="text-[10px] text-stone-400 mt-1">Rescue My Break</div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
-              <div className="text-[11px] font-bold text-[#292929] uppercase">Total Sales</div>
-              <div className="text-2xl font-black text-[#292929] mt-1">₹{stats.totalSales}</div>
-              <div className="text-[10px] text-stone-400 mt-1">Canteen revenue</div>
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs">
+              <div className="text-[10px] font-bold text-[#292929] uppercase">Demo Sales</div>
+              <div className="text-2xl font-black text-[#292929] mt-1">₹{stats.totalSales.toLocaleString('en-IN')}</div>
+              <div className="text-[10px] text-amber-700 font-semibold mt-1">Sample revenue</div>
             </div>
+          </div>
+
+          {/* Administrator Notifications Section */}
+          <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-[#292929] flex items-center gap-2">
+                <Bell className="w-4 h-4 text-amber-600" />
+                Administrator Notifications
+              </h3>
+              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#FFF5CC] text-amber-900 border border-amber-300">
+                Demonstration Notifications
+              </span>
+            </div>
+
+            {notifications.length === 0 ? (
+              <div className="text-xs text-[#777777] py-2">No administrator alerts right now.</div>
+            ) : (
+              <div className="space-y-2">
+                {notifications.map(n => (
+                  <div
+                    key={n.id}
+                    className="p-3.5 rounded-2xl bg-[#FFF5CC]/45 border border-amber-200 flex items-start justify-between gap-3 text-xs"
+                  >
+                    <div>
+                      <div className="font-bold text-[#292929] flex items-center gap-2">
+                        <span>{n.title}</span>
+                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-white text-amber-900 border border-amber-300">
+                          DEMO DATA
+                        </span>
+                      </div>
+                      <p className="text-stone-700 mt-0.5">{n.message}</p>
+                    </div>
+                    <span className="text-[10px] text-[#777777] whitespace-nowrap">
+                      {formatOrderTime12h(n.created_at)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Quick Problematic Orders Notice Card */}
@@ -393,19 +483,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
 
           {/* Live Recent Orders Preview */}
           <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-2xs">
-            <h3 className="font-bold text-sm text-[#292929] mb-4">Recent Canteen Pre-Orders</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-sm text-[#292929]">Recent Canteen Pre-Orders</h3>
+              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-stone-100 text-stone-600">
+                Includes Demo Orders
+              </span>
+            </div>
             <div className="divide-y divide-stone-100 text-xs">
-              {orders.slice(0, 5).map(o => (
-                <div key={o.id} className="py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+              {orders.slice(0, 7).map(o => (
+                <div key={o.id} className="py-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 flex-wrap">
                     <span className="font-mono font-bold text-sm text-[#292929]">#{o.id}</span>
+                    {o.is_demo_seed === 1 && (
+                      <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-[#FFF5CC] text-amber-900 border border-amber-300">
+                        DEMO
+                      </span>
+                    )}
                     <span className="font-semibold">{o.student_name} ({o.college_id})</span>
-                    <span className="text-[#777777]">• {o.pickup_time}</span>
+                    <span className="text-[#777777]">• Pickup: {o.pickup_time}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-bold">₹{o.total_amount}</span>
                     <span className="px-2 py-0.5 rounded font-bold capitalize bg-stone-100 text-stone-800">
-                      {o.order_status}
+                      {o.order_status === 'ready' ? 'Ready for Pickup' : o.order_status}
                     </span>
                   </div>
                 </div>
@@ -462,11 +562,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
               <thead>
                 <tr className="border-b border-stone-200 text-[#777777] uppercase text-[10px] tracking-wider font-bold">
                   <th className="pb-3 pr-4">Order ID & Code</th>
-                  <th className="pb-3 px-4">Student & USN</th>
-                  <th className="pb-3 px-4">Items</th>
-                  <th className="pb-3 px-4">Pickup Time</th>
-                  <th className="pb-3 px-4">Amount & Payment</th>
-                  <th className="pb-3 px-4">Status</th>
+                  <th className="pb-3 px-4">Student & College ID</th>
+                  <th className="pb-3 px-4">Food Items</th>
+                  <th className="pb-3 px-4">Order & Pickup Time</th>
+                  <th className="pb-3 px-4">Payment Method & Status</th>
+                  <th className="pb-3 px-4">Order Status</th>
                   <th className="pb-3 pl-4 text-right">Admin Actions</th>
                 </tr>
               </thead>
@@ -478,6 +578,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
                       <div className="font-mono text-xs font-bold text-amber-900 bg-[#FFF5CC] px-1.5 py-0.2 rounded inline-block">
                         {order.pickup_code}
                       </div>
+                      {order.is_demo_seed === 1 && (
+                        <div className="text-[10px] font-bold uppercase text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded inline-block mt-1 ml-1">
+                          DEMO DATA
+                        </div>
+                      )}
                     </td>
 
                     <td className="py-3.5 px-4">
@@ -492,14 +597,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
                     </td>
 
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="font-bold text-[#292929]">{order.pickup_time}</div>
-                      <div className="text-[10px] text-stone-400">{order.created_at?.slice(11, 16)}</div>
+                      <div className="font-bold text-[#292929]">Pickup: {order.pickup_time}</div>
+                      <div className="text-[10px] text-stone-500">Order: {formatOrderTime12h(order.created_at)}</div>
                     </td>
 
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="font-bold text-[#292929]">₹{order.total_amount}</div>
+                      <div className="font-bold text-[#292929]">
+                        ₹{order.total_amount} • {order.payment_method === 'online' ? 'Online' : 'Counter'}
+                      </div>
                       <div className="text-[10px] text-stone-500 capitalize">
-                        {order.payment_status}
+                        {order.payment_status === 'paid_demo'
+                          ? 'Paid (Demo)'
+                          : order.payment_status === 'refunded_demo'
+                          ? 'Refunded (Demo)'
+                          : 'Pending'}
                       </div>
                     </td>
 
@@ -511,11 +622,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
                             : order.order_status === 'ready'
                             ? 'bg-emerald-100 text-emerald-800'
                             : order.order_status === 'completed'
-                            ? 'bg-stone-100 text-stone-700'
+                            ? 'bg-stone-200 text-stone-800'
                             : 'bg-amber-100 text-amber-900'
                         }`}
                       >
-                        {order.order_status}
+                        {order.order_status === 'ready' ? 'Ready for Pickup' : order.order_status}
                       </span>
                     </td>
 
@@ -651,56 +762,104 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
       {/* ===================== VIEW 4: KITCHEN CAPACITY ===================== */}
       {currentTab === 'capacity_mgmt' && (
         <section className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xs space-y-6">
-          <div className="pb-4 border-b border-stone-100">
-            <h2 className="text-lg font-black text-[#292929]">Kitchen Station Capacity Limits</h2>
-            <p className="text-xs text-[#777777]">
-              Configure maximum preparation slots per station. Updates directly recalibrate the student pickup scheduling engine.
-            </p>
+          <div className="pb-4 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-black text-[#292929]">Kitchen Station Capacity Limits</h2>
+              <p className="text-xs text-[#777777]">
+                Configure maximum preparation slots per station. Updates directly recalibrate the student pickup scheduling engine.
+              </p>
+            </div>
+            <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#FFF5CC] text-amber-900 border border-amber-300 self-start sm:self-auto">
+              Demo Workload Snapshot
+            </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {stations.map(st => (
-              <div key={st.id} className="bg-stone-50 rounded-2xl p-6 border border-stone-200 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-bold text-base text-[#292929]">{st.name}</h3>
-                    <p className="text-xs text-[#777777] mt-0.5">{st.description}</p>
-                  </div>
-                  <span className="font-mono text-xs font-bold bg-white px-2 py-0.5 rounded border">
-                    {st.id}
-                  </span>
-                </div>
+            {stations.map(st => {
+              const demoLoad = demoWorkloads.find(w => w.station_id === st.id);
+              const maxCap = demoLoad ? demoLoad.max_capacity : st.max_capacity_per_slot;
+              const currentLoad = demoLoad ? demoLoad.current_workload : 0;
+              const remainingCap = demoLoad ? demoLoad.remaining_capacity : maxCap;
+              const loadPct = Math.min(100, Math.round((currentLoad / maxCap) * 100));
+              const statusLabel = demoLoad ? demoLoad.status_label : 'Available';
 
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <label className="block text-xs font-bold text-[#292929] mb-1">
-                      Max Orders / Items per Slot:
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={editingCapacity[st.id] || st.max_capacity_per_slot}
-                      onChange={e =>
-                        setEditingCapacity(prev => ({
-                          ...prev,
-                          [st.id]: parseInt(e.target.value, 10) || 1
-                        }))
-                      }
-                      className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-sm font-bold text-[#292929] focus:outline-hidden"
-                    />
+              return (
+                <div key={st.id} className="bg-stone-50 rounded-2xl p-6 border border-stone-200 space-y-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-bold text-base text-[#292929]">
+                        {demoLoad ? demoLoad.display_name : st.name}
+                      </h3>
+                      <p className="text-xs text-[#777777] mt-0.5">{st.description}</p>
+                    </div>
+                    <span
+                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                        statusLabel === 'Limited'
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      }`}
+                    >
+                      {statusLabel}
+                    </span>
                   </div>
 
-                  <button
-                    onClick={() => handleSaveStationCapacity(st.id)}
-                    disabled={stationSaving}
-                    className="self-end py-2 px-4 bg-[#F4C542] hover:bg-[#e6b733] text-[#292929] font-bold text-xs rounded-xl transition-colors cursor-pointer"
-                  >
-                    Save
-                  </button>
+                  {/* Demonstration Workload & Remaining Capacity */}
+                  {demoLoad && (
+                    <div className="bg-white rounded-xl p-3.5 border border-stone-200 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-amber-900 uppercase text-[10px]">
+                          DEMO DATA • Station Load
+                        </span>
+                        <span className="font-bold text-[#292929]">
+                          Remaining: {remainingCap} / {maxCap}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[#777777]">
+                        <span>Maximum Capacity: <strong className="text-[#292929]">{maxCap}</strong></span>
+                        <span>Current Workload: <strong className="text-[#292929]">{currentLoad}</strong></span>
+                      </div>
+                      <div className="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            statusLabel === 'Limited' ? 'bg-amber-400' : 'bg-emerald-500'
+                          }`}
+                          style={{ width: `${loadPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-[#292929] mb-1">
+                        Live Scheduling Max Orders / Slot:
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={editingCapacity[st.id] || st.max_capacity_per_slot}
+                        onChange={e =>
+                          setEditingCapacity(prev => ({
+                            ...prev,
+                            [st.id]: parseInt(e.target.value, 10) || 1
+                          }))
+                        }
+                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-sm font-bold text-[#292929] focus:outline-hidden"
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => handleSaveStationCapacity(st.id)}
+                      disabled={stationSaving}
+                      className="self-end py-2 px-4 bg-[#F4C542] hover:bg-[#e6b733] text-[#292929] font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
@@ -708,11 +867,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
       {/* ===================== VIEW 5: INVENTORY ===================== */}
       {currentTab === 'inventory_mgmt' && (
         <section className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xs space-y-6">
-          <div className="pb-4 border-b border-stone-100">
-            <h2 className="text-lg font-black text-[#292929]">Canteen Ingredient Inventory</h2>
-            <p className="text-xs text-[#777777]">
-              Track raw materials and ingredient stocks. Unavailable ingredients protect students from ordering sold-out recipes.
-            </p>
+          <div className="pb-4 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-black text-[#292929]">Canteen Ingredient Inventory</h2>
+              <p className="text-xs text-[#777777]">
+                Track raw materials and ingredient stocks. Unavailable ingredients protect students from ordering sold-out recipes.
+              </p>
+            </div>
+            <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#FFF5CC] text-amber-900 border border-amber-300 self-start sm:self-auto">
+              Demo Inventory Records
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -724,11 +888,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
                   className="bg-white rounded-2xl p-4 border border-stone-200 shadow-2xs flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-start justify-between">
-                      <h4 className="font-bold text-sm text-[#292929]">{inv.name}</h4>
-                      {isLow && (
-                        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-bold text-sm text-[#292929]">{inv.name}</h4>
+                        <span className="text-[10px] font-bold uppercase text-stone-400">DEMO DATA</span>
+                      </div>
+                      {inv.is_available === 0 ? (
+                        <span className="text-[10px] font-bold bg-red-100 text-red-800 px-2 py-0.5 rounded">
+                          Out of Stock
+                        </span>
+                      ) : isLow ? (
+                        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300">
                           Low Stock
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                          In Stock
                         </span>
                       )}
                     </div>
@@ -763,64 +938,156 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
       {/* ===================== VIEW 6: ACCOUNTS ===================== */}
       {currentTab === 'accounts_mgmt' && (
         <section className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xs space-y-6">
-          <div className="pb-4 border-b border-stone-100">
-            <h2 className="text-lg font-black text-[#292929]">Registered Student & Employee Accounts</h2>
-            <p className="text-xs text-[#777777]">
-              View registered users and manage account active/inactive access status. Passwords remain securely hashed.
-            </p>
+          <div className="pb-4 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-black text-[#292929]">Student & Employee Accounts</h2>
+              <p className="text-xs text-[#777777]">
+                View demo student & kitchen staff showcase records alongside active login accounts.
+              </p>
+            </div>
+            <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#FFF5CC] text-amber-900 border border-amber-300 self-start sm:self-auto">
+              Demo Directory + System Accounts
+            </span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-stone-200 text-[#777777] uppercase text-[10px] tracking-wider font-bold">
-                  <th className="pb-3 pr-4">User ID & Role</th>
-                  <th className="pb-3 px-4">Full Name</th>
-                  <th className="pb-3 px-4">Login Identifier (USN / Emp ID)</th>
-                  <th className="pb-3 px-4">Department / Year</th>
-                  <th className="pb-3 px-4">Status</th>
-                  <th className="pb-3 pl-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {accounts.map(acc => (
-                  <tr key={acc.id} className="hover:bg-stone-50/70">
-                    <td className="py-3 pr-4">
-                      <span className="font-bold text-[#292929]">{acc.id}</span>
-                      <div className="text-[10px] uppercase font-bold text-stone-500 mt-0.5">
-                        {acc.role}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 font-bold text-[#292929]">{acc.full_name}</td>
-                    <td className="py-3 px-4 font-mono font-semibold text-stone-700">{acc.username}</td>
-                    <td className="py-3 px-4 text-stone-600">
-                      {acc.department || '-'} {acc.year_of_study ? `(${acc.year_of_study})` : ''}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${
-                          acc.status === 'active'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {acc.status}
-                      </span>
-                    </td>
-                    <td className="py-3 pl-4 text-right">
-                      {acc.role !== 'admin' && (
-                        <button
-                          onClick={() => handleToggleAccountStatus(acc)}
-                          className="text-xs font-bold text-amber-800 hover:underline"
-                        >
-                          {acc.status === 'active' ? 'Deactivate' : 'Activate'}
-                        </button>
-                      )}
-                    </td>
+          {/* Demo Showcase Accounts */}
+          {demoAccounts.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border border-stone-200 rounded-2xl p-4 bg-stone-50/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-sm text-[#292929]">Demo Student Accounts</h3>
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-[#FFF5CC] text-amber-900 border border-amber-300">
+                    DEMO DATA
+                  </span>
+                </div>
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-stone-200 text-[#777777] uppercase text-[10px] font-bold">
+                      <th className="pb-2">Student</th>
+                      <th className="pb-2">Department</th>
+                      <th className="pb-2 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {demoAccounts
+                      .filter(a => a.role === 'student')
+                      .map(acc => (
+                        <tr key={acc.id}>
+                          <td className="py-2.5 font-bold text-[#292929]">{acc.full_name}</td>
+                          <td className="py-2.5 text-stone-700 font-semibold">{acc.department}</td>
+                          <td className="py-2.5 text-right">
+                            <span
+                              className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${
+                                acc.status === 'active'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {acc.status === 'active' ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="border border-stone-200 rounded-2xl p-4 bg-stone-50/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-sm text-[#292929]">Demo Kitchen Employee Accounts</h3>
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-[#FFF5CC] text-amber-900 border border-amber-300">
+                    DEMO DATA
+                  </span>
+                </div>
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-stone-200 text-[#777777] uppercase text-[10px] font-bold">
+                      <th className="pb-2">Employee</th>
+                      <th className="pb-2">Role</th>
+                      <th className="pb-2 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {demoAccounts
+                      .filter(a => a.role === 'employee')
+                      .map(acc => (
+                        <tr key={acc.id}>
+                          <td className="py-2.5 font-bold text-[#292929]">{acc.full_name}</td>
+                          <td className="py-2.5 text-stone-700 font-semibold">{acc.department}</td>
+                          <td className="py-2.5 text-right">
+                            <span
+                              className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${
+                                acc.status === 'active'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {acc.status === 'active' ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* System Login Accounts */}
+          <div>
+            <h3 className="font-bold text-sm text-[#292929] mb-3">Registered Login Accounts</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-stone-200 text-[#777777] uppercase text-[10px] tracking-wider font-bold">
+                    <th className="pb-3 pr-4">User ID & Role</th>
+                    <th className="pb-3 px-4">Full Name</th>
+                    <th className="pb-3 px-4">Login Identifier (USN / Emp ID)</th>
+                    <th className="pb-3 px-4">Department / Year</th>
+                    <th className="pb-3 px-4">Status</th>
+                    <th className="pb-3 pl-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {accounts.map(acc => (
+                    <tr key={acc.id} className="hover:bg-stone-50/70">
+                      <td className="py-3 pr-4">
+                        <span className="font-bold text-[#292929]">{acc.id}</span>
+                        <div className="text-[10px] uppercase font-bold text-stone-500 mt-0.5">
+                          {acc.role}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 font-bold text-[#292929]">{acc.full_name}</td>
+                      <td className="py-3 px-4 font-mono font-semibold text-stone-700">{acc.username}</td>
+                      <td className="py-3 px-4 text-stone-600">
+                        {acc.department || '-'} {acc.year_of_study ? `(${acc.year_of_study})` : ''}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-2 py-0.5 rounded font-bold text-[10px] uppercase ${
+                            acc.status === 'active'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {acc.status}
+                        </span>
+                      </td>
+                      <td className="py-3 pl-4 text-right">
+                        {acc.role !== 'admin' && (
+                          <button
+                            onClick={() => handleToggleAccountStatus(acc)}
+                            className="text-xs font-bold text-amber-800 hover:underline cursor-pointer"
+                          >
+                            {acc.status === 'active' ? 'Deactivate' : 'Activate'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       )}
@@ -828,47 +1095,73 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentTab, onSe
       {/* ===================== VIEW 7: REPORTS ===================== */}
       {currentTab === 'reports' && (
         <section className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-2xs space-y-6">
-          <div className="pb-4 border-b border-stone-100">
-            <h2 className="text-lg font-black text-[#292929]">Canteen Operational Reports</h2>
-            <p className="text-xs text-[#777777]">
-              Aggregated order volumes, completed sales, and top popular food items.
-            </p>
+          <div className="pb-4 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-black text-[#292929]">Canteen Operational Reports</h2>
+              <p className="text-xs text-[#777777]">
+                Aggregated order volumes, completed sales, and top popular food items.
+              </p>
+            </div>
+            <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#FFF5CC] text-amber-900 border border-amber-300 self-start sm:self-auto">
+              Demo Report Data
+            </span>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200">
-              <div className="text-xs text-[#777777] font-semibold">Total Orders</div>
+              <div className="text-xs text-[#777777] font-semibold">Total Orders Today</div>
               <div className="text-3xl font-black text-[#292929] mt-1">{reports.totalOrders}</div>
+              <div className="text-[10px] text-amber-700 font-semibold mt-1">DEMO DATA</div>
             </div>
             <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200">
               <div className="text-xs text-emerald-700 font-semibold">Completed Orders</div>
               <div className="text-3xl font-black text-emerald-700 mt-1">{reports.completedOrders}</div>
+              <div className="text-[10px] text-stone-400 mt-1">Demo sample</div>
             </div>
             <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200">
               <div className="text-xs text-red-700 font-semibold">Cancelled Orders</div>
               <div className="text-3xl font-black text-red-700 mt-1">{reports.cancelledOrders}</div>
+              <div className="text-[10px] text-stone-400 mt-1">Demo sample</div>
             </div>
             <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200">
-              <div className="text-xs text-[#292929] font-semibold">Total Sales Revenue</div>
-              <div className="text-3xl font-black text-[#292929] mt-1">₹{reports.totalSales}</div>
+              <div className="text-xs text-amber-700 font-semibold">Delayed Orders</div>
+              <div className="text-3xl font-black text-amber-700 mt-1">{reports.delayedOrders ?? 2}</div>
+              <div className="text-[10px] text-stone-400 mt-1">Demo sample</div>
+            </div>
+            <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+              <div className="text-xs text-[#292929] font-semibold">Demo Sales</div>
+              <div className="text-3xl font-black text-[#292929] mt-1">₹{reports.totalSales.toLocaleString('en-IN')}</div>
+              <div className="text-[10px] text-amber-700 font-semibold mt-1">Sample revenue</div>
             </div>
           </div>
 
           <div>
-            <h3 className="font-bold text-sm text-[#292929] mb-3">Top Popular Food Items</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-sm text-[#292929]">Top Popular Food Items</h3>
+              <span className="text-xs text-[#777777]">
+                Popular: <strong className="text-[#292929]">Masala Dosa</strong> • 2nd: <strong className="text-[#292929]">Veg Fried Rice</strong>
+              </span>
+            </div>
             <div className="border border-stone-200 rounded-2xl overflow-hidden">
               <table className="w-full text-left text-xs">
                 <thead className="bg-stone-50 border-b border-stone-200 text-[#777777] uppercase text-[10px] font-bold">
                   <tr>
                     <th className="py-2.5 px-4">Item Name</th>
                     <th className="py-2.5 px-4">Units Sold</th>
-                    <th className="py-2.5 px-4 text-right">Revenue Generated</th>
+                    <th className="py-2.5 px-4 text-right">Demo Revenue Generated</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
                   {reports.popularItems?.map((pi: any, idx: number) => (
                     <tr key={idx} className="hover:bg-stone-50/50">
-                      <td className="py-3 px-4 font-bold text-[#292929]">{pi.item_name}</td>
+                      <td className="py-3 px-4 font-bold text-[#292929]">
+                        {pi.item_name}
+                        {pi.rank && (
+                          <span className="ml-2 text-[10px] font-bold px-2 py-0.2 rounded bg-[#FFF5CC] text-amber-900 border border-amber-300">
+                            {pi.rank}
+                          </span>
+                        )}
+                      </td>
                       <td className="py-3 px-4">{pi.total_sold} servings</td>
                       <td className="py-3 px-4 text-right font-black text-[#292929]">₹{pi.revenue}</td>
                     </tr>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../utils/csrf';
 import {
   User,
   GraduationCap,
@@ -55,7 +56,7 @@ export const ProfilePage: React.FC = () => {
 
     setPwdSaving(true);
     try {
-      const res = await fetch('/api/auth/change-password', {
+      const res = await apiFetch('/api/auth/change-password', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword, newPassword })

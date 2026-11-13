@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Order } from '../types';
+import { apiFetch } from '../utils/csrf';
 import {
   Clock,
   CheckCircle2,
@@ -26,7 +27,7 @@ export const MyOrdersPage: React.FC<MyOrdersPageProps> = ({ onGoToMenu }) => {
 
   const fetchMyOrders = async () => {
     try {
-      const res = await fetch('/api/orders/my');
+      const res = await apiFetch('/api/orders/my');
       if (res.ok) {
         const data = await res.json();
         setOrders(data.orders || []);
@@ -48,7 +49,7 @@ export const MyOrdersPage: React.FC<MyOrdersPageProps> = ({ onGoToMenu }) => {
   const handleAcceptDelay = async (orderId: string) => {
     setAcceptingDelayId(orderId);
     try {
-      const res = await fetch(`/api/orders/${orderId}/accept-delay`, {
+      const res = await apiFetch(`/api/orders/${orderId}/accept-delay`, {
         method: 'POST'
       });
       const data = await res.json();

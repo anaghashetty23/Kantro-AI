@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { db } from './db';
+import { db } from './db.ts';
 
 let aiClient: GoogleGenAI | null = null;
 if (process.env.GEMINI_API_KEY) {

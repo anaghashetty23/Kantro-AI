@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { Sparkles, Send, Clock, Plus, ArrowRight, User, Bot, AlertCircle } from 'lucide-react';
+import { apiFetch } from '../utils/csrf';
 
 interface Message {
   id: string;
@@ -69,7 +70,7 @@ I'm connected to the live canteen menu, preparation durations, and kitchen stati
     setIsTyping(true);
 
     try {
-      const response = await fetch('/api/ai/chat', {
+      const response = await apiFetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -91,9 +92,11 @@ I'm connected to the live canteen menu, preparation durations, and kitchen stati
       const botMessage: Message = {
         id: `bot_${Date.now()}`,
         sender: 'assistant',
-        text: data.message || 'Here are some recommendations based on the live menu.',
-        suggestedItems: data.suggestedItems,
-        suggestedPickupTime: data.suggestedPickupTime
+        text: response.ok
+          ? data.message || 'Here are some recommendations based on the live menu.'
+          : data.error || 'Assistant could not process your request.',
+        suggestedItems: response.ok ? data.suggestedItems : undefined,
+        suggestedPickupTime: response.ok ? data.suggestedPickupTime : undefined
       };
 
       setMessages(prev => [...prev, botMessage]);

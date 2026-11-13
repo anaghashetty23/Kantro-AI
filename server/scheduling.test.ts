@@ -5,8 +5,8 @@ import {
   timeStringToMinutes,
   minutesToTimeString,
   evaluateBreakPickupSlots,
-  CartItem
-} from './scheduling';
+  type CartItem
+} from './scheduling.ts';
 
 test('time conversions convert 12h and 24h formats accurately', () => {
   assert.equal(timeStringToMinutes('12:00 PM'), 720);
