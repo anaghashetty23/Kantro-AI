@@ -26,20 +26,69 @@ When an order is delayed, the kitchen employee or administrator can update its s
 
 ## **Technology Stack**
 
-- **Frontend:** React.js
-- **Programming Language:** TypeScript
-- **Build Tool:** Vite
-- **Styling:** Tailwind CSS
-- **Backend:** Node.js and Express.js
-- **Database:** SQLite
-- **Database Driver:** Better-SQLite3
-- **Authentication:** bcryptjs and session-based authentication using HTTP-only cookies
-- **AI Integration:** Google Gemini API
-- **Icons:** Lucide React
-- **Animations:** Motion
-- **Package Manager:** Bun
-- **Deployment:** Vercel
-- **Version Control:** Git and GitHub
+KANTRO AI is built using a modern full-stack technology stack that combines frontend development, backend services, database management, and artificial intelligence.
+
+### Frontend Technologies
+
+| Technology | Purpose |
+|:---|:---|
+| **React 19** | Building interactive and reusable user interfaces. |
+| **TypeScript** | Providing type safety and improving code reliability. |
+| **Vite 8** | Frontend development server and production build tool. |
+| **Tailwind CSS 4** | Utility-first styling and responsive UI design. |
+| **Lucide React** | Providing icons throughout the application. |
+| **Motion** | Creating animations and interactive visual effects. |
+
+### Backend Technologies
+
+| Technology | Purpose |
+|:---|:---|
+| **Node.js** | JavaScript runtime for backend execution. |
+| **Express.js 4** | Building REST APIs and handling server requests. |
+| **TypeScript** | Implementing backend logic with type safety. |
+| **tsx** | Executing TypeScript files during development. |
+| **CORS** | Managing cross-origin resource sharing. |
+| **Cookie Parser** | Parsing cookies in incoming HTTP requests. |
+| **dotenv** | Managing environment variables. |
+
+### Database
+
+| Technology | Purpose |
+|:---|:---|
+| **SQLite** | Storing application data, including users, menu items, and orders. |
+| **better-sqlite3** | Providing database connectivity and SQL query execution. |
+
+### Artificial Intelligence
+
+| Technology | Purpose |
+|:---|:---|
+| **Google Gemini API** | Powering AI-assisted functionality within KANTRO AI. |
+| **Google GenAI SDK (`@google/genai`)** | Integrating the application with Google's generative AI services. |
+
+### Security
+
+| Technology | Purpose |
+|:---|:---|
+| **bcryptjs** | Hashing passwords before storing them. |
+| **Node.js Crypto** | Supporting cryptographic operations and secure token generation. |
+| **Cookie-based Authentication** | Managing authentication through HTTP cookies. |
+| **CSRF Protection Utilities** | Supporting protection against cross-site request forgery. |
+
+### Deployment & Version Control
+
+| Technology | Purpose |
+|:---|:---|
+| **Vercel** | Hosting and deploying the application, including serverless API functions. |
+| **Git** | Tracking source-code changes and managing versions. |
+| **GitHub** | Hosting the project's source code and repository. |
+
+### Development & Testing Tools
+
+| Technology | Purpose |
+|:---|:---|
+| **TypeScript Compiler (`tsc`)** | Type checking and code validation. |
+| **Esbuild** | JavaScript and TypeScript bundling support. |
+| **Node.js Testing Utilities** | Supporting backend testing. |
 
 ---
 
