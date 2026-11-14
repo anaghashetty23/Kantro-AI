@@ -329,14 +329,14 @@ function seedInitialData() {
   // Let's add 2 delayed orders, 1 pending order, and 28 completed orders, and 5 cancelled orders for other students so the admin metrics match accurately.
   
   // 2 Delayed orders
-  insertOrder.run('KA107', 'u_demo_s1', 'Rahul Varma', '4MT21CS045', 'PK-7707', 90, '12:20', '12:50', '12:35 PM', 'online', 'paid_demo', 'delayed', 'Peak station overload on Tawa', 'Due to high lunch rush on Dosa Tawa, your order is delayed by 10 minutes. New expected pickup: 12:45 PM.', '12:45 PM', 1, '2026-11-12 12:15:00', '2026-11-12 12:30:00');
+  insertOrder.run('KA107', 'u_demo_s1', 'Rahul Varma', '4MT21CS045', 'PK-7707', 90, '12:20', '12:50', '12:35 PM', 'online', 'paid_demo', 'delayed', 'Peak station overload on Tawa', 'Due to high lunch rush on Dosa Tawa, your order is delayed by 10 minutes. New expected pickup: 12:45 PM.', '12:45 PM', '2026-11-12 12:15:00', '2026-11-12 12:30:00');
   insertOrderItem.run('oi_107_1', 'KA107', 'm_set_dosa', 'Set Dosa', 2, 45, 9, 'station_south');
   
-  insertOrder.run('KA108', 'u_demo_s2', 'Priya Nayak', '4MT22EC089', 'PK-8808', 60, '12:30', '13:00', '12:45 PM', 'counter', 'pending', 'delayed', 'Ingredient replenishment in progress', 'Fresh cheese batch currently replenishing. Estimated ready time adjusted by 8 minutes.', '12:53 PM', 1, '2026-11-12 12:20:00', '2026-11-12 12:35:00');
+  insertOrder.run('KA108', 'u_demo_s2', 'Priya Nayak', '4MT22EC089', 'PK-8808', 60, '12:30', '13:00', '12:45 PM', 'counter', 'pending', 'delayed', 'Ingredient replenishment in progress', 'Fresh cheese batch currently replenishing. Estimated ready time adjusted by 8 minutes.', '12:53 PM', '2026-11-12 12:20:00', '2026-11-12 12:35:00');
   insertOrderItem.run('oi_108_1', 'KA108', 'm_cheese_sandwich', 'Cheese Sandwich', 1, 60, 8, 'station_snacks');
 
   // Add 1 more pending order
-  insertOrder.run('KA109', 'u_demo_s3', 'Vikram Rao', '4MT23IS012', 'PK-9909', 45, '13:00', '13:30', '01:15 PM', 'counter', 'pending', 'confirmed', null, null, null, 1, '2026-11-12 12:40:00', '2026-11-12 12:40:00');
+  insertOrder.run('KA109', 'u_demo_s3', 'Vikram Rao', '4MT23IS012', 'PK-9909', 45, '13:00', '13:30', '01:15 PM', 'counter', 'pending', 'confirmed', null, null, null, '2026-11-12 12:40:00', '2026-11-12 12:40:00');
   insertOrderItem.run('oi_109_1', 'KA109', 'm_lemon_rice', 'Lemon Rice', 1, 45, 5, 'station_meals');
 
   // Seed 28 completed historical orders
@@ -372,7 +372,6 @@ function seedInitialData() {
       null,
       null,
       null,
-      1,
       '2026-11-12 10:45:00',
       '2026-11-12 11:20:00'
     );
@@ -398,7 +397,6 @@ function seedInitialData() {
       'Student requested cancellation',
       'Cancelled upon student schedule change.',
       null,
-      1,
       '2026-11-12 09:50:00',
       '2026-11-12 10:05:00'
     );
